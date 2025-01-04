@@ -32,15 +32,12 @@ const Dashboard = () => {
 
     return (
         <>
-            <Box className="w-full bg-blue-500 h-screen py-5">
+            <Box className="w-full bg-blue-500 min-h-screen flex items-center py-5">
                 <Container
                     maxWidth="lg"
-                    sx={{
-                        height: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
+                    // sx={{
+                    //     mt:{xs:"40px",md:'0px'}
+                    // }}
                 >
                     <Box
                         display="flex"
