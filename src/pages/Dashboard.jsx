@@ -1,43 +1,54 @@
 import { Box, Container, Typography } from '@mui/material';
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Dashboard = () => {
-    // Mock API data (replace this with API fetch later)
-    const [answers, setAnswers] = useState([]);
+    const { answers, strikes } = useSelector(state => state.game);
+    const dispatch = useDispatch();
+    const totalBoxes = 8;
 
     useEffect(() => {
-        // Simulate API call and update state
-        setTimeout(() => {
-            setAnswers([
-                { number: 1, text: "Answer 1", percentage: "72%" },
-            ]);
-        }, 2000);
-        setTimeout(() => {
-            setAnswers([
-                { number: 1, text: "Answer 1", percentage: "72%" },
-                { number: 4, text: "Answer 4", percentage: "45%" },
-            ]);
-        }, 4000);
-        setTimeout(() => {
-            setAnswers([
-                { number: 1, text: "Answer 1", percentage: "72%" },
-                { number: 4, text: "Answer 4", percentage: "45%" },
-                { number: 6, text: "Answer 6", percentage: "31%" }
-            ]);
-        }, 6000);
-    }, []);
+        const bc = new BroadcastChannel('game-updates');
 
-    // Define the total number of boxes
-    const totalBoxes = 8;
+        bc.onmessage = (event) => {
+            const { type, payload } = event.data;
+            // Dispatch the received action to update local Redux store
+            dispatch({ type, payload });
+        };
+
+        return () => bc.close();
+    }, [dispatch]);
+
+    // Transform answers for dashboard display
+    const displayAnswers = answers
+        .filter(answer => answer.revealed)
+        .map(answer => ({
+            number: answer.id,
+            text: answer.text,
+            percentage: answer.points.toString()
+        }));
+
+    console.log("Display strikes:", strikes);
 
     return (
         <>
             <Box className="w-full bg-blue-500 min-h-screen flex items-center py-5">
+                {
+                    strikes > 0 && (
+                        <Box position='absolute' top='50%' left='50%'>
+                            <Typography color='#fff'>Strike</Typography>
+                        </Box>
+                    )
+                }
                 <Container
                     maxWidth="lg"
-                    // sx={{
-                    //     mt:{xs:"40px",md:'0px'}
-                    // }}
+                    sx={{
+                        bgcolor: '#1e3a8a',
+                        padding: '20px',
+                        border: '5px solid yellow',
+                        borderRadius: '12px'
+                        // mt:{xs:"40px",md:'0px'}
+                    }}
                 >
                     <Box
                         display="flex"
@@ -48,7 +59,7 @@ const Dashboard = () => {
                         {/* First column: Boxes 1–4 */}
                         <Box display="flex" flexDirection="column" gap={3} flex={1}>
                             {[...Array(totalBoxes / 2)].map((_, index) => {
-                                const answer = answers.find(a => a.number === index + 1);
+                                const answer = displayAnswers.find(a => a.number === index + 1);
                                 return (
                                     <Box
                                         key={index}
@@ -71,7 +82,7 @@ const Dashboard = () => {
                                             </>
                                         ) : (
                                             // Render default index if no data  
-                                            <Box className='border border-blue-300 w-full h-full rounded-lg flex items-center justify-center'>
+                                            <Box className='border border-blue-300 bg-blue-500 w-full h-full rounded-lg flex items-center justify-center'>
                                                 <Box
                                                     sx={{
                                                         width: 40,
@@ -102,7 +113,7 @@ const Dashboard = () => {
                         <Box display="flex" flexDirection="column" gap={3} flex={1}>
                             {[...Array(totalBoxes / 2)].map((_, index) => {
                                 {/* const currentIndex = index + 5; // Start from 5 for the second column */ }
-                                const answer = answers.find(a => a.number === index + 5);
+                                const answer = displayAnswers.find(a => a.number === index + 5);
                                 return (
                                     <Box
                                         key={index}
@@ -125,7 +136,7 @@ const Dashboard = () => {
                                             </>
                                         ) : (
                                             // Render default index if no data
-                                            <Box className='border border-blue-300 w-full h-full rounded-lg flex items-center justify-center'>
+                                            <Box className='border border-blue-300 bg-blue-500 w-full h-full rounded-lg flex items-center justify-center'>
                                                 <Box
                                                     sx={{
                                                         width: 40,
