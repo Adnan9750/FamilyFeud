@@ -33,13 +33,13 @@ const Dashboard = () => {
     return (
         <>
             <Box className="w-full bg-blue-500 min-h-screen flex items-center py-5">
-                {
+                {/* {
                     strikes > 0 && (
                         <Box position='absolute' top='50%' left='50%'>
                             <Typography color='#fff'>Strike</Typography>
                         </Box>
                     )
-                }
+                } */}
                 <Container
                     maxWidth="lg"
                     sx={{
