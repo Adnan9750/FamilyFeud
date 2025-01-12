@@ -32,7 +32,7 @@ const AdminPanel = () => {
                         type: 'game/switchTeam',
                         payload: undefined
                     });
-                }, 1000);
+                }, 5000);
             }
         }
     }

@@ -7,7 +7,8 @@ const Dashboard = () => {
     const { answers, strikes, showingStrikes,isAutoSwitchingTeam  } = useSelector(state => state.game);
     const dispatch = useDispatch();
     const totalBoxes = 8;
-    const [visibleStrikes, setVisibleStrikes] = useState(0);
+    const [showCrosses, setShowCrosses] = useState(false);
+    const [currentStrike, setCurrentStrike] = useState(0);
     const strikeSound = new Audio('/Strike.mp3');
 
     useEffect(() => {
@@ -26,17 +27,25 @@ const Dashboard = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        if (showingStrikes) {
-            setVisibleStrikes(strikes);
-            
-            if (strikes === 3 && isAutoSwitchingTeam) {
-                const timer = setTimeout(() => {
+        if (showingStrikes && strikes > 0) {
+            // Show crosses for current strike
+            setCurrentStrike(strikes);
+            setShowCrosses(true);
+
+            // Hide crosses after 5 seconds
+            const timer = setTimeout(() => {
+                setShowCrosses(false);
+                
+                // If it's the third strike, switch teams after hiding crosses
+                if (strikes === 3 && isAutoSwitchingTeam) {
                     dispatch(switchTeam());
-                }, 3000); 
-                return () => clearTimeout(timer);
-            }
+                }
+            }, 5000);
+
+            return () => clearTimeout(timer);
         } else {
-            setVisibleStrikes(0);
+            setShowCrosses(false);
+            setCurrentStrike(0);
         }
     }, [strikes, showingStrikes, isAutoSwitchingTeam, dispatch]);
     
@@ -49,7 +58,9 @@ const Dashboard = () => {
         }));
 
     const renderStrikes = () => {
-        return [...Array(visibleStrikes)].map((_, index) => (
+        if (!showCrosses) return null;
+
+        return [...Array(currentStrike)].map((_, index) => (
             <Box
                 key={index}
                 position="absolute"
