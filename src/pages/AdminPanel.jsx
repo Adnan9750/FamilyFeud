@@ -1,16 +1,13 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { revealAnswer, addStrike, switchTeam } from './store/gameSlice';
-import {Box,Container,Typography,Button,Card,CardContent,Grid,IconButton} from '@mui/material';
-import {Close as CloseIcon,CheckCircle as CheckCircleIcon,SwapHoriz as SwapHorizIcon} from '@mui/icons-material';
+import { Box, Container, Typography, Button, Card, CardContent, Grid } from '@mui/material';
+import { Close as CloseIcon, CheckCircle as CheckCircleIcon, SwapHoriz as SwapHorizIcon } from '@mui/icons-material';
 import { addStrike, revealAnswer, switchTeam } from '../redux/gameSlice';
 
 const AdminPanel = () => {
     const dispatch = useDispatch();
-    const { currentQuestion, answers, currentTeam, strikes } = useSelector(state => state.game);
+    const { currentQuestion, answers, currentTeam, strikes, isAutoSwitchingTeam } = useSelector(state => state.game);
     const bc = new BroadcastChannel('game-updates');
-
-    console.log("Strikes:",strikes);
 
     const handleRevealAnswer = (id) => {
         dispatch(revealAnswer(id));
@@ -21,12 +18,24 @@ const AdminPanel = () => {
     };
 
     const handleAddStrike = () => {
-        dispatch(addStrike());
-        bc.postMessage({
-            type: 'game/addStrike',
-            payload: undefined
-        });
-    };
+        if (strikes < 3) {
+            dispatch(addStrike());
+            bc.postMessage({
+                type: 'game/addStrike',
+                payload: undefined
+            });
+            
+            if (strikes === 2) {
+                setTimeout(() => {
+                    dispatch(switchTeam());
+                    bc.postMessage({
+                        type: 'game/switchTeam',
+                        payload: undefined
+                    });
+                }, 1000);
+            }
+        }
+    }
 
     const handleSwitchTeam = () => {
         dispatch(switchTeam());
@@ -40,7 +49,6 @@ const AdminPanel = () => {
         <Box sx={{ minHeight: '100vh', bgcolor: '#1e3a8a', py: 3 }}>
             <Container maxWidth="lg">
                 <Card sx={{ bgcolor: '#1e293b', color: 'white', border: '4px solid #fbbf24' }}>
-                    {/* Header Section */}
                     <CardContent>
                         <Typography variant="h4" align="center" sx={{ color: '#fbbf24', fontWeight: 'bold', mb: 3 }}>
                             Admin Panel
@@ -55,8 +63,12 @@ const AdminPanel = () => {
                         {/* Team and Strikes Display */}
                         <Box sx={{
                             bgcolor: '#1e4ed8',
-                            p: 2, borderRadius: 2, mb: 3, display: 'flex',
-                            justifyContent: 'space-between', alignItems: 'center'
+                            p: 2, 
+                            borderRadius: 2, 
+                            mb: 3, 
+                            display: 'flex',
+                            justifyContent: 'space-between', 
+                            alignItems: 'center'
                         }}>
                             <Typography variant="h6">
                                 Current Team: <span style={{ color: '#fbbf24' }}>Team {currentTeam}</span>
@@ -80,6 +92,7 @@ const AdminPanel = () => {
                                     variant="contained"
                                     startIcon={<SwapHorizIcon />}
                                     onClick={handleSwitchTeam}
+                                    // disabled={showingStrikes && strikes === 3}
                                     sx={{
                                         bgcolor: '#fbbf24',
                                         '&:hover': { bgcolor: '#f59e0b' }

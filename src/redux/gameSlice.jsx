@@ -11,7 +11,9 @@ const initialState = {
         { id: 6, text: "Snacks", points: 24, revealed: false },
     ],
     currentTeam: 1,
-    strikes: 0
+    strikes: 0,
+    showingStrikes: false,
+    isAutoSwitchingTeam: false  // New state to handle team switching
 };
 
 const gameSlice = createSlice({
@@ -24,20 +26,33 @@ const gameSlice = createSlice({
                 answer.id === id ? { ...answer, revealed: true } : answer
             );
             state.strikes = 0;
+            state.showingStrikes = false;
+            state.isAutoSwitchingTeam = false;
         },
         addStrike: (state) => {
-            state.strikes += 1;
-            if (state.strikes >= 3) {
-                state.currentTeam = state.currentTeam === 1 ? 2 : 1;
-                state.strikes = 0;
+            if (state.strikes < 3) {
+                state.strikes += 1;
+                state.showingStrikes = true;
+                
+                if (state.strikes === 3) {
+                    state.isAutoSwitchingTeam = true;
+                    // Don't reset strikes or showingStrikes here
+                }
             }
         },
         switchTeam: (state) => {
             state.currentTeam = state.currentTeam === 1 ? 2 : 1;
             state.strikes = 0;
+            state.showingStrikes = false;
+            state.isAutoSwitchingTeam = false;
+        },
+        resetStrikes: (state) => {
+            state.showingStrikes = false;
+            state.strikes = 0;
+            state.isAutoSwitchingTeam = false;
         }
     }
 });
 
-export const { revealAnswer, addStrike, switchTeam } = gameSlice.actions;
+export const { revealAnswer, addStrike, switchTeam, resetStrikes } = gameSlice.actions;
 export default gameSlice.reducer;
