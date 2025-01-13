@@ -46,7 +46,7 @@ const AdminPanel = () => {
     };
 
     return (
-        <Box sx={{ minHeight: '100vh', bgcolor: '#1e3a8a', py: 3 }}>
+        <Box sx={{ bgcolor: '#1e3a8a', py: 3 }}>
             <Container maxWidth="lg">
                 <Card sx={{ bgcolor: '#1e293b', color: 'white', border: '4px solid #fbbf24' }}>
                     <CardContent>

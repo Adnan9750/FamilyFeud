@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Example from './pages/Example'
 import AdminPanel from './pages/AdminPanel'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import PrivateLayout from './components/Layout/PrivateLayout'
 
 const App = () => {
 
@@ -14,8 +15,11 @@ const App = () => {
       element: <Dashboard />
     },
     {
-      path: '/admin',
-      element: <AdminPanel />
+      path: '/',
+      element: <PrivateLayout />,
+      children:[
+        { path: '/admin', element: <AdminPanel /> },
+      ]
     }
   ],
     {
