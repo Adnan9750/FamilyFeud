@@ -13,9 +13,14 @@ const Dashboard = () => {
     const totalBoxes = 8;
     // const [showCrosses, setShowCrosses] = useState(false);
     const [currentStrike, setCurrentStrike] = useState(0);
-    const [point, setPoint] = useState()
     // const strikeSound = new Audio('/Strike.mp3');
     // const [start, setStart] = useState(false)
+
+    // const [families, setFamilies] = useState([])
+    // const [question, setQuestion] = useState([])
+    // const [answer, setAnswer] = useState([])
+
+    console.log("Answer:", answers);
 
     useEffect(() => {
         const socket = io('https://family-feud-backend.onrender.com/');
@@ -24,7 +29,7 @@ const Dashboard = () => {
             // console.log('startGame:', data);
             dispatch(setFamily(data.families))
             dispatch(setQuestion(data.question))
-            const answersWithReveal = data?.question?.answers?.map(ans => ({
+            const answersWithReveal = data.question.answers.map(ans => ({
                 ...ans,
                 revealed: false
             }));
@@ -32,20 +37,24 @@ const Dashboard = () => {
         });
 
         socket.on('revealAnswer', (data) => {
-            console.log('Revealed Answer:', data);
-            if (data?.answer && answers) {
-                const updatedAnswers = answers.map(ans =>
-                    ans._id === data?.answer?._id
-                        ? { ...ans, revealed: true }
-                        : ans
-                );
+            // console.log('Current answers before reveal:', answers);
+            // console.log('Revealed answer data:', data);
+
+            if (answers && answers.length > 0) {
+                const updatedAnswers = answers.map(ans => {
+                    if (ans._id === data.answer._id) {
+                        return { ...ans, revealed: true };
+                    }
+                    return ans;
+                });
+                console.log('Updating answers to:', updatedAnswers);
                 dispatch(setAnswer(updatedAnswers));
-                setPoint(data.answer.points);
             }
+
         });
 
         socket.on('strike', (data) => {
-            // console.log('Strike Count:', data.countStrike);
+            console.log('Strike Count:', data.countStrike);
             setCurrentStrike(data?.countStrike)
             setTimeout(() => {
                 setCurrentStrike(0)
@@ -55,16 +64,19 @@ const Dashboard = () => {
 
 
         socket.on('newQuestion', (data) => {
-            console.log('newQuestion:', data);
+            // console.log('newQuestion:', data);
             dispatch(setFamily(data.families))
             dispatch(setQuestion(data.question))
-            const answersWithReveal = data?.question?.answers?.map(ans => ({
+            const answersWithReveal = data.question.answers.map(ans => ({
                 ...ans,
                 revealed: false
             }));
             dispatch(setAnswer(answersWithReveal))
         });
 
+        return () => {
+            socket.disconnect();
+        };
     }, [])
 
     // useEffect(() => {
@@ -187,7 +199,7 @@ const Dashboard = () => {
                                                 <Box sx={{ maxWidth: { xs: '100%', sm: '400px', md: '150px' } }}
                                                     className='flex justify-center w-full bg-blue-950 py-5 rounded-md border-[2px] border-[#C0C0C0]'
                                                 >
-                                                    <Typography variant='h3' color='#fff'>{point}</Typography>
+                                                    <Typography variant='h3' color='#fff'>72</Typography>
                                                 </Box>
                                             </Box>
                                         </Grid2>
@@ -230,7 +242,7 @@ const Dashboard = () => {
                                                                     key={index}
                                                                     className=" h-16  flex items-center justify-center"
                                                                 >
-                                                                    {answer && answer?.revealed ? (
+                                                                    {answer && answer.revealed ? (
                                                                         // Render API data
                                                                         <>
                                                                             <Box
