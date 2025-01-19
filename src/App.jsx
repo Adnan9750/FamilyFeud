@@ -6,6 +6,7 @@ import Example from './pages/Example'
 import AdminPanel from './pages/AdminPanel'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import PrivateLayout from './components/Layout/PrivateLayout'
+import AddFamily from './pages/AddFamily'
 
 const App = () => {
 
@@ -18,7 +19,8 @@ const App = () => {
       path: '/',
       element: <PrivateLayout />,
       children:[
-        { path: '/admin', element: <AdminPanel /> },
+        {path:'/addFamilies',element: <AddFamily/>}
+        // { path: '/admin', element: <AdminPanel /> },
       ]
     }
   ],

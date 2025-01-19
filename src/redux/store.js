@@ -1,20 +1,26 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import gameSlice from './gameSlice';
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+import answerSlice from './answerSlice';
+import dashboardSlice from './dashboardSlice';
+import adminSlice from './adminSlice';
 // import gameReducer from './gameSlice';
+
+const rootReducer = combineReducers({
+    dashboard:dashboardSlice,
+    admin:adminSlice
+})
 
 const persistConfig = {
     key: 'root',
     storage,
 };
 
-const persistedReducer = persistReducer(persistConfig, gameSlice);
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
-    reducer: {
-        game: gameSlice
-    },
+    reducer: persistedReducer,
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {

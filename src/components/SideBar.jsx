@@ -1,12 +1,15 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import GridViewIcon from '@mui/icons-material/GridView';
 import { Typography } from '@mui/material';
 
 const SideBar = () => {
+
+    const location = useLocation()
+
     return (
         <>
-            <div className='relative bg-[#1e3a8a]'>
+            <div className='relative '>
                 <div className={`h-screen transition-all duration-300 border-r px-2 overflow-hidden w-64`}>
 
                     <div className='h-16 flex items-center px-4 pt-5'>
@@ -31,27 +34,42 @@ const SideBar = () => {
                     </div>
 
                     <nav className='flex-1 overflow-y-auto overflow-x-hidden pt-4 '>
-                        <div className='flex flex-col justify-center'>
+                        <div className='flex flex-col gap-1 justify-center'>
                             {/* Dashboard */}
                             <Link
-                                to='/'
-                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-950 hover:rounded-xl`}
+                                to='/admin'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-950 hover:rounded-lg 
+                                    ${location.pathname === '/admin' ? 'bg-blue-100 rounded-lg' : ''}`
+                                }
                             >
-                                <div className="min-w-[24px] flex justify-center text-white">
+                                <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
                                     <GridViewIcon />
                                 </div>
                                 <Typography
-                                    sx={{ml:'12px'}}
-                                    color='#fff'
+                                    sx={{ ml: '12px' }}
+                                    color='#1e3a8a'
                                 >
-                                    Dashboard
+                                    Admin Dashboard
+                                </Typography>
+                            </Link>
+
+                            <Link
+                                to='/'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-950 hover:rounded-lg`}
+                            >
+                                <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
+                                    <GridViewIcon />
+                                </div>
+                                <Typography
+                                    sx={{ ml: '12px' }}
+                                    color='#1e3a8a'
+                                >
+                                    Add Question
                                 </Typography>
                             </Link>
 
                         </div>
                     </nav>
-
-
 
                 </div >
             </div >
