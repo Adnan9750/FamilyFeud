@@ -18,6 +18,8 @@ const AddFamily = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [strikeCount, setStrikeCount] = useState(0)
 
+    console.log("Admin answer:",answer);
+
     console.log("Selected family:", selectedFamily1);
 
     const API = setupAPI()

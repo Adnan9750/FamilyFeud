@@ -17,9 +17,12 @@ const dashboardSlice = createSlice({
         },
         setAnswer: (state, action) => {
             state.answers = action.payload
+        },
+        resetAnswer: (state) => {
+            state.answers = []
         }
     }
 })
 
-export const { setFamily, setQuestion, setAnswer } = dashboardSlice.actions
+export const { setFamily, setQuestion, setAnswer, resetAnswer } = dashboardSlice.actions
 export default dashboardSlice.reducer
