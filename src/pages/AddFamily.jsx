@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react'
 import setupAPI from '../services/Api'
 import { Close } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
-import { setAnswer, setFamily, setQuestion } from '../redux/adminSlice'
+import { addPoints, setAnswer, setFamily, setQuestion } from '../redux/adminSlice'
 
 const AddFamily = () => {
 
     const dispatch = useDispatch()
-    const { family, question: currentQuestion, answer } = useSelector(state => state.admin)
+    const { family, question: currentQuestion, answer, currentTeamIndex, scores } = useSelector(state => state.admin)
 
     const [familyData, setFamilyData] = useState([])
     const [family1Input, setFamily1Input] = useState('')
@@ -18,9 +18,9 @@ const AddFamily = () => {
     const [isLoading, setIsLoading] = useState(false)
     const [strikeCount, setStrikeCount] = useState(0)
 
-    console.log("Admin answer:",answer);
+    console.log("Team index:", currentTeamIndex);
 
-    console.log("Selected family:", selectedFamily1);
+    console.log("Team score:", scores);
 
     const API = setupAPI()
 
@@ -45,7 +45,7 @@ const AddFamily = () => {
                     res?.data?.family
             })
             // Refresh the families list
-            // fetchFamilies()
+            fetchFamilies()
             // return res?.data?.data
         } catch (error) {
             console.log(error)
@@ -127,11 +127,15 @@ const AddFamily = () => {
                 answerToRevealId: answerId,
                 reveal: true
             })
-            console.log("Answer Reveal:",res);
-            const updatedAnswers = answer.map(ans => 
+            console.log("Answer Reveal:", res);
+            const updatedAnswers = answer.map(ans =>
                 ans._id === answerId ? { ...ans, revealed: true } : ans
             )
             dispatch(setAnswer(updatedAnswers))
+            const revealedAnswer = answer.find(ans => ans._id === answerId);
+            if (revealedAnswer) {
+                dispatch(addPoints(revealedAnswer.points));
+            }
         } catch (error) {
             console.log(error);
         }
@@ -141,11 +145,11 @@ const AddFamily = () => {
         try {
             const nextStrikeCount = strikeCount >= 3 ? 1 : strikeCount + 1;
 
-            const res = await API.post('/admin/action',{
-                strike:true,
-                countStrike:nextStrikeCount,
+            const res = await API.post('/admin/action', {
+                strike: true,
+                countStrike: nextStrikeCount,
             })
-            console.log("Add strike:",res);
+            console.log("Add strike:", res);
             setStrikeCount(nextStrikeCount)
         } catch (error) {
             console.log(error);
