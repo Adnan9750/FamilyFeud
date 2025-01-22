@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react'
 import setupAPI from '../services/Api'
 import { Close } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
-import { addPoints, setAnswer, setFamily, setQuestion } from '../redux/adminSlice'
+import { addScore, setAnswer, setFamily, setQuestion, switchTeam } from '../redux/adminSlice'
 
 const AddFamily = () => {
 
     const dispatch = useDispatch()
-    const { family, question: currentQuestion, answer, currentTeamIndex, scores } = useSelector(state => state.admin)
+    const { family, question: currentQuestion, answer, currentTeamIndex } = useSelector(state => state.admin)
 
     const [familyData, setFamilyData] = useState([])
     const [family1Input, setFamily1Input] = useState('')
@@ -17,10 +17,12 @@ const AddFamily = () => {
     const [selectedFamily2, setSelectedFamily2] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [strikeCount, setStrikeCount] = useState(0)
+    const [questionCount, setQuestionCount] = useState(0)
+    const MAX_QUESTIONS = 3
 
-    console.log("Team index:", currentTeamIndex);
+    console.log("family score data:", family);
 
-    console.log("Team score:", scores);
+    // console.log("Selected family:", selectedFamily1);
 
     const API = setupAPI()
 
@@ -40,10 +42,7 @@ const AddFamily = () => {
                 name: familyName
             })
             console.log("created family:", res)
-            setFamilyData(pervData => {
-                pervData,
-                    res?.data?.family
-            })
+            // setFamilyData(prevData => [...prevData, res?.data?.family])
             // Refresh the families list
             fetchFamilies()
             // return res?.data?.data
@@ -90,10 +89,11 @@ const AddFamily = () => {
                 "family1": selectedFamily1._id,
                 "family2": selectedFamily2._id
             })
-            console.log("Start game:", res);
+            // console.log("Start game:", res);
             dispatch(setFamily(res?.data?.families))
             dispatch(setQuestion(res?.data?.question))
             dispatch(setAnswer(res?.data?.question?.answers))
+            setQuestionCount(1)
         } catch (error) {
             console.log(error);
             setIsLoading(false)
@@ -105,6 +105,10 @@ const AddFamily = () => {
     const handleNextQuestion = async () => {
         setIsLoading(true)
         try {
+            if (questionCount >= MAX_QUESTIONS) {
+                return; // Don't fetch new question if we've reached the limit
+            }
+
             const res = await API.post('/Game/new-question', {
                 questionId: currentQuestion.id,
                 family1: family[0]._id,
@@ -113,6 +117,9 @@ const AddFamily = () => {
             console.log("Next Question", res);
             dispatch(setQuestion(res?.data?.question))
             dispatch(setAnswer(res?.data?.question?.answers))
+            setStrikeCount(0)
+            setQuestionCount(prev => prev + 1)
+
         } catch (error) {
             setIsLoading(false)
         } finally {
@@ -126,20 +133,23 @@ const AddFamily = () => {
                 questionId: currentQuestion.id,
                 answerToRevealId: answerId,
                 reveal: true
-            })
-            console.log("Answer Reveal:", res);
+            });
+
             const updatedAnswers = answer.map(ans =>
                 ans._id === answerId ? { ...ans, revealed: true } : ans
-            )
-            dispatch(setAnswer(updatedAnswers))
+            );
+            dispatch(setAnswer(updatedAnswers));
+
             const revealedAnswer = answer.find(ans => ans._id === answerId);
+
             if (revealedAnswer) {
-                dispatch(addPoints(revealedAnswer.points));
+                dispatch(addScore({ points: revealedAnswer.points }));
             }
         } catch (error) {
             console.log(error);
         }
-    }
+    };
+
 
     const handleAddStrike = async () => {
         try {
@@ -151,6 +161,32 @@ const AddFamily = () => {
             })
             console.log("Add strike:", res);
             setStrikeCount(nextStrikeCount)
+
+            if (nextStrikeCount === 3) {
+                dispatch(switchTeam({ transferScore: true }));
+                // Reset strike count after a short delay to allow for visual feedback
+                setTimeout(() => {
+                    setStrikeCount(0);
+                }, 1000);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleEndGame = async () => {
+        try {
+            const familyWon = family[0].score > family[1].score ? family[0] : family[1];
+            const familyLost = family[0].score > family[1].score ? family[1] : family[0];
+            console.log("Family Won:", familyWon);
+            console.log("Family lost:", familyLost);
+            const res = await API.post("/Game/end-game", {
+                question: currentQuestion.id,
+                familyWonId: familyWon._id,
+                familyLoseId: familyLost._id,
+                familyWonScore: familyWon.score,
+                familyLoseScore: familyLost.score
+            })
         } catch (error) {
             console.log(error);
         }
@@ -184,13 +220,13 @@ const AddFamily = () => {
                                                 mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                                             }}>
                                                 <Typography variant="h6">
-                                                    Current Team: <span style={{ color: '#fbbf24' }}>Team 1</span>
+                                                    Current Team: <span style={{ color: '#fbbf24' }}>{family[currentTeamIndex]?.name}</span>
                                                 </Typography>
 
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                         <Typography variant="body1">Strikes:</Typography>
-                                                        {[...Array(3)].map((_, index) => (
+                                                        {[...Array(currentTeamIndex === 0 ? 3 : 1)].map((_, index) => (
                                                             <Close
                                                                 key={index}
                                                                 sx={{
@@ -201,7 +237,7 @@ const AddFamily = () => {
                                                         ))}
                                                     </Box>
 
-                                                    <Button
+                                                    {/* <Button
                                                         variant="contained"
                                                         // startIcon={<SwapHorizIcon />}
                                                         // onClick={handleSwitchTeam}
@@ -212,7 +248,7 @@ const AddFamily = () => {
                                                         }}
                                                     >
                                                         Switch Team
-                                                    </Button>
+                                                    </Button> */}
                                                 </Box>
                                             </Box>
 
@@ -272,17 +308,31 @@ const AddFamily = () => {
                                                     Add Strike
                                                 </Button>
 
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={handleNextQuestion}
-                                                    sx={{
-                                                        fontSize: '16px',
-                                                        textTransform: 'capitalize',
-                                                        bgcolor: '#fbbf24  '
-                                                    }}
-                                                >
-                                                    Next Question
-                                                </Button>
+                                                {questionCount < MAX_QUESTIONS ? (
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={handleNextQuestion}
+                                                        sx={{
+                                                            fontSize: '16px',
+                                                            textTransform: 'capitalize',
+                                                            bgcolor: '#fbbf24'
+                                                        }}
+                                                    >
+                                                        Next Question
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="contained"
+                                                        onClick={handleEndGame}
+                                                        sx={{
+                                                            fontSize: '16px',
+                                                            textTransform: 'capitalize',
+                                                            bgcolor: '#fbbf24'
+                                                        }}
+                                                    >
+                                                        End Game
+                                                    </Button>
+                                                )}
                                             </Box>
                                         </>
                                     )
@@ -343,21 +393,38 @@ const AddFamily = () => {
                                 </Grid2>
                             </Grid2 >
 
-                            <Box className='w-full flex justify-end mt-2'>
-                                <button
+                            <Box className='w-full flex justify-between  mt-4'>
+                                <Button
+                                    variant='outlined'
+                                    sx={{ bgcolor: '#3b82f6', color: '#ffff', textTransform: 'capitalize', fontWeight: 500 }}
+                                    // className='bg-blue-800 py-2 px-3 text-white rounded'
+                                    onClick={handleCreateFamilies}
+                                    disabled={!(family1Input && !selectedFamily1)}
+                                >
+                                    Create First Family
+                                </Button>
+                                <Button
+                                    variant='outlined'
+                                    sx={{ bgcolor: '#3b82f6 ',color: '#ffff', textTransform: 'capitalize', fontWeight: 500 }}
+                                    // className='bg-blue-800 py-2 px-3 text-white rounded'
+                                    onClick={handleCreateFamilies}
+                                    disabled={!(family2Input && !selectedFamily2)}
+                                >
+                                    Create Second Family
+                                </Button>
+                                {/* <button
                                     className='bg-blue-800 py-2 px-3 text-white rounded'
                                     onClick={handleCreateFamilies}
                                 // disabled={!family1Input || !family2Input}
                                 >
-                                    Create Family
-                                </button>
+                                    Create Second Family
+                                </button> */}
                             </Box>
 
                             <Box className='w-full flex justify-center mt-2'>
                                 <button
-                                    className='bg-blue-900 py-2 px-3 text-white rounded'
+                                    className='bg-blue-700 py-2 px-3 text-white rounded'
                                     onClick={handleStartGame}
-                                // disabled={!family1Input || !family2Input}
                                 >
                                     Start Game
                                 </button>

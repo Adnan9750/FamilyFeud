@@ -2,20 +2,23 @@ import { Box, Container, Grid2, Typography } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
-import { setFamily, setAnswer, setQuestion, resetAnswer } from '../redux/dashboardSlice';
+import { setFamily, setAnswer, setQuestion, resetAnswer, addScore, setCurrentPoints, switchTeam } from '../redux/dashboardSlice';
 
 const Dashboard = () => {
-    const { answers, family: families, question } = useSelector(state => state.dashboard);
+    const { answers, currentTeamIndex, family: families, question,point } = useSelector(state => state.dashboard);
     const dispatch = useDispatch();
     const totalBoxes = 8;
     const [currentStrike, setCurrentStrike] = useState(0);
-    const [point, setPoint] = useState();
+    // const [point, setPoint] = useState();
     const [revealedAnswers, setRevealedAnswers] = useState(new Set());
+
+    console.log("Families data:",families);
 
     useEffect(() => {
         const socket = io('https://family-feud-backend.onrender.com/');
 
         socket.on('startGame', (data) => {
+            console.log("Start Game:", data);
             dispatch(setFamily(data.families));
             dispatch(setQuestion(data.question));
             setRevealedAnswers(new Set());
@@ -27,20 +30,39 @@ const Dashboard = () => {
         });
 
         socket.on('revealAnswer', (data) => {
+            console.log("reveal answer:",data);
             if (data?.answer) {
                 setRevealedAnswers(prev => {
                     const newSet = new Set(prev);
                     newSet.add(data.answer._id);
                     return newSet;
                 });
-                
+
                 const updatedAnswers = answers?.map(ans => ({
                     ...ans,
                     revealed: ans._id === data.answer._id || revealedAnswers.has(ans._id)
                 }));
-                
+
                 dispatch(setAnswer(updatedAnswers));
-                setPoint(data.answer.points);
+                dispatch(setCurrentPoints(data.answer.points))
+
+                dispatch(addScore(data?.answer?.points));
+            }
+        });
+
+        socket.on('strike', (data) => {
+            setCurrentStrike(data?.countStrike);
+            // setTimeout(() => {
+            //     setCurrentStrike(0);
+            // }, 4000);
+            // If it's the third strike, transfer score and switch teams
+            if (data?.countStrike === 3) {
+                dispatch(switchTeam({ transferScore: true }));
+                
+                // Reset strikes after a delay
+                setTimeout(() => {
+                    setCurrentStrike(0);
+                }, 4000);
             }
         });
 
@@ -99,7 +121,7 @@ const Dashboard = () => {
                             alignItems: 'center',
                         }}>
                             <Typography variant="h6" sx={{ color: 'white', fontWeight: 700 }}>
-                                {isSecondColumn ? index + 5 : index + 1}
+                                {isSecondColumn ? index + 1 : index + 1}
                             </Typography>
                         </Box>
                     </Box>
@@ -161,7 +183,7 @@ const Dashboard = () => {
                                             <Box sx={{ maxWidth: { xs: '100%', sm: '400px', md: '150px' } }}
                                                 className='flex justify-center w-full bg-blue-950 py-5 rounded-md border-[2px] border-[#C0C0C0]'
                                             >
-                                                <Typography variant='h3' color='#fff'>{point}</Typography>
+                                                <Typography variant='h3' color='#fff'>{point || 0}</Typography>
                                             </Box>
                                         </Box>
                                     </Grid2>
@@ -181,7 +203,7 @@ const Dashboard = () => {
                                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                                             <Box className="h-[100px] w-[100px] rounded-md bg-[#1e3a8a] flex items-center justify-center">
                                                 <Typography variant='h4' color='#fff'>
-                                                    {families[0]?.score}
+                                                    {families[0]?.points || 0}
                                                 </Typography>
                                             </Box>
                                         </Box>
@@ -206,7 +228,7 @@ const Dashboard = () => {
                                         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                                             <Box className="h-[100px] w-[100px] rounded-md bg-[#1e3a8a] flex items-center justify-center">
                                                 <Typography variant='h4' color='#fff'>
-                                                    {families[1]?.score}
+                                                    {families[1]?.points || 0}
                                                 </Typography>
                                             </Box>
                                         </Box>

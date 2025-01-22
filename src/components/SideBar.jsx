@@ -2,6 +2,9 @@ import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import GridViewIcon from '@mui/icons-material/GridView';
 import { Typography } from '@mui/material';
+import SportsEsportsOutlinedIcon from '@mui/icons-material/SportsEsportsOutlined';
+import QuestionAnswerOutlinedIcon from '@mui/icons-material/QuestionAnswerOutlined';
+import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
 
 const SideBar = () => {
 
@@ -23,13 +26,6 @@ const SideBar = () => {
                                     FamilyFued
                                 </span>
                             </div>
-
-                            {/* <span
-                                className={`font-bold text-xs text-[#00000040] whitespace-nowrap 
-                  transition-all duration-300 ${!isSidebarOpen ? 'hidden' : 'opacity-100'}`}
-                            >
-                                Gems saas Platform
-                            </span> */}
                         </div>
                     </div>
 
@@ -37,34 +33,49 @@ const SideBar = () => {
                         <div className='flex flex-col gap-1 justify-center'>
                             {/* Dashboard */}
                             <Link
-                                to='/admin'
-                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-950 hover:rounded-lg 
-                                    ${location.pathname === '/admin' ? 'bg-blue-100 rounded-lg' : ''}`
+                                to='/playGame'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg 
+                                    ${location.pathname === '/playGame' ? 'bg-blue-100 rounded-lg' : ''}`
                                 }
                             >
                                 <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
-                                    <GridViewIcon />
+                                    <SportsEsportsOutlinedIcon />
                                 </div>
                                 <Typography
                                     sx={{ ml: '12px' }}
                                     color='#1e3a8a'
                                 >
-                                    Admin Dashboard
+                                    Play Game
                                 </Typography>
                             </Link>
 
                             <Link
-                                to='/'
-                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-950 hover:rounded-lg`}
+                                to='#'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg`}
                             >
                                 <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
-                                    <GridViewIcon />
+                                    <QuestionAnswerOutlinedIcon />
                                 </div>
                                 <Typography
                                     sx={{ ml: '12px' }}
                                     color='#1e3a8a'
                                 >
                                     Add Question
+                                </Typography>
+                            </Link>
+
+                            <Link
+                                to='#'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg`}
+                            >
+                                <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
+                                    <Diversity3OutlinedIcon />
+                                </div>
+                                <Typography
+                                    sx={{ ml: '12px' }}
+                                    color='#1e3a8a'
+                                >
+                                    Manage Families
                                 </Typography>
                             </Link>
 

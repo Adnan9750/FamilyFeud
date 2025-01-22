@@ -19,7 +19,7 @@ const App = () => {
       path: '/',
       element: <PrivateLayout />,
       children:[
-        {path:'/addFamilies',element: <AddFamily/>}
+        {path:'/playGame',element: <AddFamily/>}
         // { path: '/admin', element: <AdminPanel /> },
       ]
     }
