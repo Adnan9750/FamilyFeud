@@ -49,7 +49,7 @@ const SideBar = () => {
                                 </Typography>
                             </Link>
 
-                            <Link
+                            {/* <Link
                                 to='#'
                                 className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg`}
                             >
@@ -62,11 +62,13 @@ const SideBar = () => {
                                 >
                                     Add Question
                                 </Typography>
-                            </Link>
+                            </Link> */}
 
                             <Link
-                                to='#'
-                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg`}
+                                to='/family'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg
+                                    ${location.pathname === '/family' ? 'bg-blue-100 rounded-lg' : ''}`
+                                }
                             >
                                 <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
                                     <Diversity3OutlinedIcon />

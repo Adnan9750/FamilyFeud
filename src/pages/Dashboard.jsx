@@ -2,17 +2,20 @@ import { Box, Container, Grid2, Typography } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
-import { setFamily, setAnswer, setQuestion, resetAnswer, addScore, setCurrentPoints, switchTeam } from '../redux/dashboardSlice';
+import { setFamily, setAnswer, setQuestion, resetAnswer, addScore, setCurrentPoints, switchTeam, setFamilyTurn, addStrike } from '../redux/dashboardSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-    const { answers, currentTeamIndex, family: families, question,point } = useSelector(state => state.dashboard);
+
+    const navigate = useNavigate()
+    const { answers, currentTeamIndex, family: families, question, point } = useSelector(state => state.dashboard);
     const dispatch = useDispatch();
     const totalBoxes = 8;
     const [currentStrike, setCurrentStrike] = useState(0);
     // const [point, setPoint] = useState();
     const [revealedAnswers, setRevealedAnswers] = useState(new Set());
 
-    console.log("Families data:",families);
+    console.log("current  data:", families);
 
     useEffect(() => {
         const socket = io('https://family-feud-backend.onrender.com/');
@@ -30,7 +33,7 @@ const Dashboard = () => {
         });
 
         socket.on('revealAnswer', (data) => {
-            console.log("reveal answer:",data);
+            console.log("reveal answer:", data);
             if (data?.answer) {
                 setRevealedAnswers(prev => {
                     const newSet = new Set(prev);
@@ -45,44 +48,76 @@ const Dashboard = () => {
 
                 dispatch(setAnswer(updatedAnswers));
                 dispatch(setCurrentPoints(data.answer.points))
-
+                dispatch(setFamilyTurn(data?.familyTurn))
                 dispatch(addScore(data?.answer?.points));
             }
         });
 
         socket.on('strike', (data) => {
+            console.log("Strike come:", data);
             setCurrentStrike(data?.countStrike);
-            // setTimeout(() => {
-            //     setCurrentStrike(0);
-            // }, 4000);
-            // If it's the third strike, transfer score and switch teams
-            if (data?.countStrike === 3) {
-                dispatch(switchTeam({ transferScore: true }));
-                
-                // Reset strikes after a delay
-                setTimeout(() => {
-                    setCurrentStrike(0);
-                }, 4000);
-            }
-        });
-
-        socket.on('strike', (data) => {
-            setCurrentStrike(data?.countStrike);
+            dispatch(setFamilyTurn(data?.familyTurn))
+            dispatch(addStrike(data?.countStrike))
             setTimeout(() => {
                 setCurrentStrike(0);
             }, 4000);
+            // If it's the third strike, transfer score and switch teams
+            // if (currentTeamIndex === 0 && data?.countStrike === 3) {
+            //     dispatch(switchTeam({ transferScore: true }));
+
+            //     // Reset strikes after a delay
+            //     setTimeout(() => {
+            //         setCurrentStrike(0);
+            //     }, 4000);
+            // }
         });
 
+        socket.on('switchFamily', (data) => {
+            console.log('switch Family data:', data);
+            dispatch(setFamilyTurn(data?.familyTurn))
+            setTimeout(() => {
+                setCurrentStrike(0);
+            }, 4000);
+            // Update the UI to show strikes
+        })
+
+        // socket.on('strike', (data) => {
+        //     setCurrentStrike(data?.countStrike);
+        //     setTimeout(() => {
+        //         setCurrentStrike(0);
+        //     }, 4000);
+        // });
+
         socket.on('newQuestion', (data) => {
-            dispatch(setFamily(data.families));
-            dispatch(setQuestion(data.question));
+            console.log("Next question:", data);
+            dispatch(setFamily(data?.families));
+            dispatch(setQuestion(data?.question));
+            dispatch(setCurrentPoints(0))
             setRevealedAnswers(new Set());
-            dispatch(resetAnswer());
+            // dispatch(resetAnswer());
             const answersWithReveal = data?.question?.answers?.map(ans => ({
                 ...ans,
                 revealed: false
             }));
             dispatch(setAnswer(answersWithReveal));
+        });
+
+        socket.on('revealAll', (data) => {
+            console.log("Reveal All:", data);
+            const fullyRevealedAnswers = answers?.map(ans => ({
+                ...ans,
+                revealed: true
+            }));
+            dispatch(setAnswer(fullyRevealedAnswers));
+            setRevealedAnswers(new Set(answers?.map(ans => ans._id)))
+        })
+
+        socket.on('endGame', (data) => {
+            console.log('endGame:', data);
+
+            navigate('/board')
+            dispatch(resetAnswer())
+            // Update the UI to show strikes
         });
 
         return () => {
@@ -144,8 +179,8 @@ const Dashboard = () => {
                 }}
             >
                 <img
-                    src="/cross1.png"
-                    className="w-36 h-36 animate-bounce"
+                    src="/cross.png"
+                    className="w-40 h-40 animate-bounce"
                     alt={`Strike ${index + 1}`}
                     style={{
                         animation: `bounce${index + 1} 0.5s ease-in-out`
@@ -178,7 +213,7 @@ const Dashboard = () => {
                                             <Box sx={{ maxWidth: { xs: '100%', sm: '600px', md: '800px' } }}
                                                 className='flex justify-center w-full bg-blue-950 py-5 rounded-md border-[2px] border-[#C0C0C0]'
                                             >
-                                                <Typography variant='body1' color='#fff'>{question.text}</Typography>
+                                                <Typography variant='body1' color='#fff'>{question?.text}</Typography>
                                             </Box>
                                             <Box sx={{ maxWidth: { xs: '100%', sm: '400px', md: '150px' } }}
                                                 className='flex justify-center w-full bg-blue-950 py-5 rounded-md border-[2px] border-[#C0C0C0]'

@@ -3,12 +3,25 @@ import React, { useEffect, useState } from 'react'
 import setupAPI from '../services/Api'
 import { Close } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
-import { addScore, setAnswer, setFamily, setQuestion, switchTeam } from '../redux/adminSlice'
+import { addScore, addStrike, resetAll, setAnswer, setCurrentFamilyId, setFamily, setQuestion, switchTeam } from '../redux/adminSlice'
 
 const AddFamily = () => {
 
     const dispatch = useDispatch()
-    const { family, question: currentQuestion, answer, currentTeamIndex } = useSelector(state => state.admin)
+    const {
+        family,
+        question: currentQuestion,
+        strikeCount,
+        answer,
+        currentTeamIndex,
+        currentFamilyId,
+        gameStage,
+        firstTeamStrikes,
+        secondTeamStrikes
+    } = useSelector(state => state.admin)
+
+    // console.log("First Family Strike:",firstTeamStrikes);
+    console.log("Family Data:", family);
 
     const [familyData, setFamilyData] = useState([])
     const [family1Input, setFamily1Input] = useState('')
@@ -16,38 +29,38 @@ const AddFamily = () => {
     const [selectedFamily1, setSelectedFamily1] = useState(null)
     const [selectedFamily2, setSelectedFamily2] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
-    const [strikeCount, setStrikeCount] = useState(0)
     const [questionCount, setQuestionCount] = useState(0)
     const MAX_QUESTIONS = 3
 
-    console.log("family score data:", family);
-
-    // console.log("Selected family:", selectedFamily1);
+    const reset = () => {
+        setFamily1Input('')
+        setFamily2Input('')
+        setSelectedFamily1(null)
+        setSelectedFamily2(null)
+    }
 
     const API = setupAPI()
 
     const fetchFamilies = async () => {
         try {
             const res = await API.get('/family/get-families')
-            console.log("get family,", res)
             setFamilyData(res?.data?.data)
         } catch (error) {
-            console.log(error)
+            console.error(error)
         }
     }
 
+    useEffect(() => {
+        fetchFamilies()
+    }, [])
+
     const createFamily = async (familyName) => {
         try {
-            const res = await API.post('/family/create-family', {
-                name: familyName
-            })
-            console.log("created family:", res)
-            // setFamilyData(prevData => [...prevData, res?.data?.family])
-            // Refresh the families list
+            const res = await API.post('/family/create-family', { name: familyName })
             fetchFamilies()
-            // return res?.data?.data
+            return res?.data?.family
         } catch (error) {
-            console.log(error)
+            console.error(error)
             return null
         }
     }
@@ -55,32 +68,16 @@ const AddFamily = () => {
     const handleCreateFamilies = async () => {
         let family1, family2
 
-        // Create family 1 if it's a new entry
         if (family1Input && !selectedFamily1) {
             family1 = await createFamily(family1Input)
-            setSelectedFamily1(family1._id)
+            setSelectedFamily1(family1)
         }
 
-        // Create family 2 if it's a new entry
         if (family2Input && !selectedFamily2) {
             family2 = await createFamily(family2Input)
-            setSelectedFamily2(family2._id)
-        }
-
-        // Here you can handle what happens after both families are created/selected
-        // For example, you might want to create a relationship between them
-        if ((selectedFamily1 || family1) && (selectedFamily2 || family2)) {
-            // Add your logic here to handle the relationship between families
-            console.log("Both families selected/created:",
-                selectedFamily1 || family1,
-                selectedFamily2 || family2
-            )
+            setSelectedFamily2(family2)
         }
     }
-
-    useEffect(() => {
-        fetchFamilies()
-    }, [])
 
     const handleStartGame = async () => {
         setIsLoading(true)
@@ -89,14 +86,13 @@ const AddFamily = () => {
                 "family1": selectedFamily1._id,
                 "family2": selectedFamily2._id
             })
-            // console.log("Start game:", res);
             dispatch(setFamily(res?.data?.families))
+            dispatch(setCurrentFamilyId(res?.data?.families[0]._id))
             dispatch(setQuestion(res?.data?.question))
-            dispatch(setAnswer(res?.data?.question?.answers))
             setQuestionCount(1)
+            reset()
         } catch (error) {
-            console.log(error);
-            setIsLoading(false)
+            console.error(error);
         } finally {
             setIsLoading(false)
         }
@@ -105,23 +101,17 @@ const AddFamily = () => {
     const handleNextQuestion = async () => {
         setIsLoading(true)
         try {
-            if (questionCount >= MAX_QUESTIONS) {
-                return; // Don't fetch new question if we've reached the limit
-            }
+            if (questionCount >= MAX_QUESTIONS) return;
 
             const res = await API.post('/Game/new-question', {
                 questionId: currentQuestion.id,
                 family1: family[0]._id,
                 family2: family[1]._id
             })
-            console.log("Next Question", res);
             dispatch(setQuestion(res?.data?.question))
-            dispatch(setAnswer(res?.data?.question?.answers))
-            setStrikeCount(0)
             setQuestionCount(prev => prev + 1)
-
         } catch (error) {
-            setIsLoading(false)
+            console.error(error);
         } finally {
             setIsLoading(false)
         }
@@ -129,7 +119,11 @@ const AddFamily = () => {
 
     const handleRevealAnswer = async (answerId) => {
         try {
-            const res = await API.post('/admin/action', {
+            const selectedAnswer = answer.find(ans => ans._id === answerId);
+            if (selectedAnswer.revealed) return;
+
+            await API.post('/admin/action', {
+                familyTurn: family[currentTeamIndex]?._id,
                 questionId: currentQuestion.id,
                 answerToRevealId: answerId,
                 reveal: true
@@ -140,55 +134,70 @@ const AddFamily = () => {
             );
             dispatch(setAnswer(updatedAnswers));
 
-            const revealedAnswer = answer.find(ans => ans._id === answerId);
-
-            if (revealedAnswer) {
-                dispatch(addScore({ points: revealedAnswer.points }));
+            if (selectedAnswer) {
+                dispatch(addScore({ points: selectedAnswer.points }));
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     };
 
+    const handleSwitchTeam = async () => {
+        try {
+            await API.post('/admin/switch-family', {
+                familyTurn: currentFamilyId,
+            })
+            dispatch(switchTeam());
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const handleAddStrike = async () => {
         try {
-            const nextStrikeCount = strikeCount >= 3 ? 1 : strikeCount + 1;
+            dispatch(addStrike());
 
-            const res = await API.post('/admin/action', {
+            await API.post('/admin/action', {
+                familyTurn: currentFamilyId,
                 strike: true,
-                countStrike: nextStrikeCount,
+                countStrike: strikeCount + 1,
             })
-            console.log("Add strike:", res);
-            setStrikeCount(nextStrikeCount)
-
-            if (nextStrikeCount === 3) {
-                dispatch(switchTeam({ transferScore: true }));
-                // Reset strike count after a short delay to allow for visual feedback
-                setTimeout(() => {
-                    setStrikeCount(0);
-                }, 1000);
-            }
         } catch (error) {
-            console.log(error);
+            console.error(error);
+        }
+    }
+
+    const handleRevealAll = async () => {
+        try {
+            await API.post('/admin/reveal-all', {
+                questionId: currentQuestion?.id
+            })
+
+            const updatedAnswers = answer.map(ans => ({
+                ...ans,
+                revealed: true
+            }));
+            dispatch(setAnswer(updatedAnswers));
+        } catch (error) {
+            console.error(error);
         }
     }
 
     const handleEndGame = async () => {
         try {
-            const familyWon = family[0].score > family[1].score ? family[0] : family[1];
-            const familyLost = family[0].score > family[1].score ? family[1] : family[0];
-            console.log("Family Won:", familyWon);
-            console.log("Family lost:", familyLost);
-            const res = await API.post("/Game/end-game", {
+            const familyWon = family[0].points > family[1].points ? family[0] : family[1];
+            const familyLost = family[0].points > family[1].points ? family[1] : family[0];
+
+            await API.post("/Game/end-game", {
                 question: currentQuestion.id,
                 familyWonId: familyWon._id,
                 familyLoseId: familyLost._id,
-                familyWonScore: familyWon.score,
-                familyLoseScore: familyLost.score
+                familyWonScore: familyWon.points,
+                familyLoseScore: familyLost.points
             })
+            dispatch(resetAll())
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     }
 
@@ -226,7 +235,7 @@ const AddFamily = () => {
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                         <Typography variant="body1">Strikes:</Typography>
-                                                        {[...Array(currentTeamIndex === 0 ? 3 : 1)].map((_, index) => (
+                                                        {[...Array(strikeCount)].map((_, index) => (
                                                             <Close
                                                                 key={index}
                                                                 sx={{
@@ -240,8 +249,8 @@ const AddFamily = () => {
                                                     {/* <Button
                                                         variant="contained"
                                                         // startIcon={<SwapHorizIcon />}
-                                                        // onClick={handleSwitchTeam}
-                                                        // disabled={showingStrikes && strikes === 3}
+                                                        onClick={handleSwitchTeam}
+                                                        disabled={strikeCount >= 1}
                                                         sx={{
                                                             bgcolor: '#fbbf24',
                                                             '&:hover': { bgcolor: '#f59e0b' }
@@ -258,7 +267,8 @@ const AddFamily = () => {
                                                         <Box sx={{
                                                             p: 1,
                                                             borderRadius: 2,
-                                                            // bgcolor: '#1e4ed8',
+                                                            bgcolor: '#1e4ed8',
+                                                            // border: '2px solid #3b82f6',
                                                             bgcolor: answer.revealed ? '#15803d' : '#1e4ed8',
                                                             border: `2px solid ${answer.revealed ? '#22c55e' : '#3b82f6'}`,
                                                             display: 'flex', justifyContent: 'space-between', alignItems: 'center'
@@ -277,10 +287,13 @@ const AddFamily = () => {
                                                                     variant="contained"
                                                                     // startIcon={answer.revealed ? <CheckCircleIcon /> : null}
                                                                     onClick={() => handleRevealAnswer(answer._id)}
-                                                                    disabled={answer.revealed}
+                                                                    // disabled={answer.revealed}
+                                                                    // disabled={answer.revealed ||
+                                                                    //     (gameStage === 'second_team_chance' && strikeCount > 0)}
                                                                     sx={{
+                                                                        // bgcolor: '#3b82f6'
                                                                         bgcolor: answer.revealed ? '#22c55e' : '#3b82f6',
-                                                                        '&:hover': { bgcolor: answer.revealed ? '#22c55e' : '#2563eb' }
+                                                                        // '&:hover': { bgcolor: answer.revealed ? '#22c55e' : '#2563eb' }
                                                                     }}
                                                                 >
                                                                     {/* {answer.revealed ? 'Revealed' : 'Reveal'} */}
@@ -298,7 +311,15 @@ const AddFamily = () => {
                                                     variant="contained"
                                                     startIcon={<Close />}
                                                     onClick={handleAddStrike}
-                                                    // disabled={strikes >= 3}
+                                                    disabled={
+                                                        currentFamilyId !== family[currentTeamIndex]._id ||
+                                                        (gameStage === 'second_team_chance' && secondTeamStrikes >= 1)
+                                                    }
+                                                    // disabled={
+                                                    //     currentFamilyId !== family[currentTeamIndex]._id ||
+                                                    //     (currentTeamIndex === 1 && family[currentTeamIndex].strikes >= 1)
+                                                    // }
+                                                    // disabled={family[1] && strikeCount === 1}
                                                     sx={{
                                                         fontSize: '16px',
                                                         textTransform: 'capitalize',
@@ -307,6 +328,21 @@ const AddFamily = () => {
                                                 >
                                                     Add Strike
                                                 </Button>
+
+                                                {
+                                                    (gameStage === 'second_team_chance' || secondTeamStrikes >= 1) && (
+                                                        <Button
+                                                            variant="contained"
+                                                            onClick={handleRevealAll}
+                                                            sx={{
+                                                                fontSize: '16px',
+                                                                textTransform: 'capitalize',
+                                                                bgcolor: '#fbbf24'
+                                                            }}
+                                                        >
+                                                            Reveal All
+                                                        </Button>
+                                                    )}
 
                                                 {questionCount < MAX_QUESTIONS ? (
                                                     <Button
@@ -405,7 +441,7 @@ const AddFamily = () => {
                                 </Button>
                                 <Button
                                     variant='outlined'
-                                    sx={{ bgcolor: '#3b82f6 ',color: '#ffff', textTransform: 'capitalize', fontWeight: 500 }}
+                                    sx={{ bgcolor: '#3b82f6 ', color: '#ffff', textTransform: 'capitalize', fontWeight: 500 }}
                                     // className='bg-blue-800 py-2 px-3 text-white rounded'
                                     onClick={handleCreateFamilies}
                                     disabled={!(family2Input && !selectedFamily2)}
