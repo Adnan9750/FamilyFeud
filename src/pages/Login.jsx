@@ -56,6 +56,7 @@ const Login = () => {
                             />
                             <TextField
                                 fullWidth
+                                type="password"
                                 name='password'
                                 value={formData.password}
                                 placeholder="Enter Your Password"
