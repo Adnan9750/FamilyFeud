@@ -38,16 +38,21 @@ const ManageFamilies = () => {
     const [deleteModal, setDeleteModal] = useState(false)
     const [updateModal, setUpdateModal] = useState(false)
     const [newName, setNewName] = useState('')
+    const [loading, setLoading] = useState(false)
 
     const API = setupAPI()
 
     const fetchFamilies = async () => {
+        setLoading(true)
         try {
             const res = await API.get('/family/get-families')
             console.log("get family,", res)
             setFamilyData(res?.data?.data)
         } catch (error) {
             console.log(error)
+            setLoading(false)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -97,54 +102,60 @@ const ManageFamilies = () => {
     return (
         <>
             {/* <ThemeProvider theme={theme}> */}
-                <Box padding={4}>
-                    <Container>
-                        <Box className='flex flex-col gap-5'>
-                            <Paper>
-                                <Box className='py-4 px-3 flex items-center justify-between'>
-                                    <Typography variant='h6'>Manage Families</Typography>
+            <Box padding={4}>
+                <Container>
+                    <Box className='flex flex-col gap-5'>
+                        <Paper>
+                            <Box className='py-4 px-3 flex items-center justify-between'>
+                                <Typography variant='h6'>Manage Families</Typography>
 
-                                    {/* <button className='border border-[#1d4ed8] py-2 px-3 rounded-md'>
+                                {/* <button className='border border-[#1d4ed8] py-2 px-3 rounded-md'>
                                         <Typography variant='body2'>Add Family</Typography>
                                     </button> */}
-                                </Box>
-                            </Paper>
-                            <Paper>
-                                <TableContainer>
-                                    <Table style={{ borderCollapse: "collapse" }} aria-label="striped sortable table">
-                                        <TableHead>
-                                            <TableCell>Name</TableCell>
-                                            <TableCell align='center'>Game Played</TableCell>
-                                            <TableCell align='center'>Game Won</TableCell>
-                                            <TableCell align='center'>Actions</TableCell>
-                                        </TableHead>
+                            </Box>
+                        </Paper>
+                        <Paper>
+                            <TableContainer>
+                                <Table style={{ borderCollapse: "collapse" }} aria-label="striped sortable table">
+                                    <TableHead>
+                                        <TableCell>Name</TableCell>
+                                        <TableCell align='center'>Game Played</TableCell>
+                                        <TableCell align='center'>Game Won</TableCell>
+                                        <TableCell align='center'>Actions</TableCell>
+                                    </TableHead>
 
-                                        <TableBody>
-                                            {
-                                                familyData?.map((currFamily) => (
-                                                    <TableRow key={currFamily._id}>
-                                                        <TableCell>{currFamily.name || '--'}</TableCell>
-                                                        <TableCell align='center'>{currFamily.gamesPlayed}</TableCell>
-                                                        <TableCell align='center'>{currFamily.gamesWon}</TableCell>
-                                                        <TableCell align='center'>
-                                                            <IconButton onClick={(event) => handleSelectedFamily(event, currFamily)}>
-                                                                <MoreVert />
-                                                            </IconButton>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            }
+                                    {
+                                        loading ? (
+                                            <Typography  textAlign='center'>Loading ...</Typography>
+                                        ) : (
+                                            <TableBody>
+                                                {
+                                                    familyData?.map((currFamily) => (
+                                                        <TableRow key={currFamily._id}>
+                                                            <TableCell>{currFamily.name || '--'}</TableCell>
+                                                            <TableCell align='center'>{currFamily.gamesPlayed}</TableCell>
+                                                            <TableCell align='center'>{currFamily.gamesWon}</TableCell>
+                                                            <TableCell align='center'>
+                                                                <IconButton onClick={(event) => handleSelectedFamily(event, currFamily)}>
+                                                                    <MoreVert />
+                                                                </IconButton>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))
+                                                }
 
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            </Paper>
-                        </Box>
-                    </Container>
-                </Box>
+                                            </TableBody>
+                                        )
+                                    }
+                                </Table>
+                            </TableContainer>
+                        </Paper>
+                    </Box>
+                </Container >
+            </Box >
             {/* </ThemeProvider> */}
 
-            <Menu
+            < Menu
                 anchorEl={menuAnchor}
                 open={Boolean(menuAnchor)}
                 onClose={() => { setMenuAnchor(null), setCurrentFamily(null) }}
@@ -152,12 +163,12 @@ const ManageFamilies = () => {
                 {/* <MenuItem onClick={handleViewDetails} sx={{ fontSize: "14px" }}>
                     View Details
                 </MenuItem> */}
-                <MenuItem
+                < MenuItem
                     onClick={() => { setUpdateModal(true), setMenuAnchor(null) }}
                     sx={{ fontSize: "14px" }}
                 >
                     Edit
-                </MenuItem>
+                </MenuItem >
 
                 <MenuItem
                     onClick={() => { setDeleteModal(true), setMenuAnchor(null) }}
@@ -165,7 +176,7 @@ const ManageFamilies = () => {
                 >
                     Delete
                 </MenuItem>
-            </Menu>
+            </Menu >
 
             <Modal
                 open={updateModal}

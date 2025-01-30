@@ -50,8 +50,10 @@ const SideBar = () => {
                             </Link>
 
                             {/* <Link
-                                to='#'
-                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg`}
+                                to='/addQuestion'
+                                className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg
+                                ${location.pathname === '/addQuestion' ? 'bg-blue-100 rounded-lg' : ''}`
+                                }
                             >
                                 <div className="min-w-[24px] flex justify-center text-[#1e3a8a]">
                                     <QuestionAnswerOutlinedIcon />

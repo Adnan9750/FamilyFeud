@@ -215,7 +215,7 @@ const AddFamily = () => {
 
                                 {
                                     isLoading ? (
-                                        <Typography>Loadin ...</Typography>
+                                        <Typography>Loading ...</Typography>
                                     ) : (
                                         <>
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#1e4ed8', p: 2, borderRadius: 2, mb: 3 }}>

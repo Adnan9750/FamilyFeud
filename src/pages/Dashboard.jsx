@@ -14,6 +14,7 @@ const Dashboard = () => {
     const [currentStrike, setCurrentStrike] = useState(0);
     // const [point, setPoint] = useState();
     const [revealedAnswers, setRevealedAnswers] = useState(new Set());
+    const [familyWon, setFamilyWon] = useState('')
 
     console.log("current  data:", families);
 
@@ -115,8 +116,13 @@ const Dashboard = () => {
         socket.on('endGame', (data) => {
             console.log('endGame:', data);
 
-            navigate('/board')
-            dispatch(resetAnswer())
+            setFamilyWon(data?.familyWon?.Name)
+            setTimeout(() => {
+                navigate('/board')
+                dispatch(resetAnswer())
+            }, 10000)
+            // navigate('/board')
+            // dispatch(resetAnswer())
             // Update the UI to show strikes
         });
 
@@ -195,6 +201,11 @@ const Dashboard = () => {
             {families.length > 0 ? (
                 <Box className='w-full bg-blue-500'>
                     {renderStrikes()}
+
+                    <Box className='absolute top-[40%] left-[28%]'>
+                        <Typography variant='h1' sx={{ color: '#fbbf24', textTransform: 'capitalize' }}>{familyWon || ''} Won</Typography>
+                    </Box>
+
                     <Box className="min-h-screen flex flex-col justify-center items-center gap-20">
                         <Container maxWidth="xl">
                             <Box className='flex flex-col'>
@@ -275,7 +286,7 @@ const Dashboard = () => {
                 </Box>
             ) : (
                 <Box className='min-h-screen bg-blue-500 flex justify-center items-center w-full'>
-                    <Typography variant='h3'>Game not start</Typography>
+                    <Typography variant='h3' sx={{color:'#fbbf24'}}>Game not start</Typography>
                 </Box>
             )}
         </>
