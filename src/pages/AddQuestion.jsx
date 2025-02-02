@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, Table, TableCell, TableContainer, TableHead, Typography } from '@mui/material'
+import { Alert, Box, Button, Container, Table, TableBody, TableCell, TableContainer, TableHead, Typography } from '@mui/material'
 import React, { useRef, useState } from 'react'
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import setupAPI from '../services/Api';
@@ -8,6 +8,7 @@ const AddQuestion = () => {
   const fileRef = useRef(null)
   const [selectedFile, setSelectedFile] = useState(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('')
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -41,10 +42,19 @@ const AddQuestion = () => {
     }
 
     try {
-      const res = await API.post('/survey/upload-Surveys', selectedFile)
+      const formData = new FormData()
+
+      formData.append('file', selectedFile)
+
+      const res = await API.post('/survey/upload-Surveys', formData)
+      // console.log("Uploa file:", res);
+      setSuccess(res?.data?.message)
+      setTimeout(() => {
+        setSuccess('')
+      }, 3000)
       // upload-Surveys
     } catch (error) {
-
+      console.log(error);
     }
   }
 
@@ -54,12 +64,12 @@ const AddQuestion = () => {
         <Container>
           <Box >
             <form className='flex flex-col gap-10' onSubmit={handleUploadQuestion}>
-              <Box className='flex flex-col gap-3'>
-                <Typography variant='body1' fontWeight={600}>Format Of Question</Typography>
+              <Box className='flex flex-col gap-4'>
+                <Typography variant='body1' fontWeight={600}>Format Of Question:</Typography>
                 <TableContainer>
                   <Table style={{ borderCollapse: "collapse" }} aria-label="striped sortable table">
                     <TableHead>
-                      <TableCell>Question</TableCell>
+                      <TableCell sx={{ minWidth: '150px' }}>Question</TableCell>
                       <TableCell sx={{ minWidth: '100px' }}>Answer 1</TableCell>
                       <TableCell sx={{ minWidth: '100px' }}>Point 1</TableCell>
                       <TableCell sx={{ minWidth: '100px' }}>Answer 2</TableCell>
@@ -77,6 +87,27 @@ const AddQuestion = () => {
                       <TableCell sx={{ minWidth: '100px' }}>Answer 8</TableCell>
                       <TableCell sx={{ minWidth: '100px' }}>Point 8</TableCell>
                     </TableHead>
+
+                    <TableBody>
+                      <TableCell sx={{ minWidth: '150px' }}>Name a place where people try to be quiet.</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Library</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>35</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Church</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>20</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Movie theater</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>15</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Hospital</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>10</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Classroom</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>8</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Office</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>5</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Courtroom</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>4</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>Baby’s room</TableCell>
+                      <TableCell sx={{ minWidth: '100px' }}>3</TableCell>
+                    </TableBody>
+
                   </Table>
                 </TableContainer>
               </Box>
@@ -84,6 +115,11 @@ const AddQuestion = () => {
               {
                 error && (
                   <Alert severity='error'>{error}</Alert>
+                )
+              }
+              {
+                success && (
+                  <Alert severity='success'>{success}</Alert>
                 )
               }
 
@@ -101,6 +137,7 @@ const AddQuestion = () => {
                     style={{ display: "none" }}
                     accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     onChange={handleFileChange}
+                    name='file'
                   />
                 </Box>
               </Box>

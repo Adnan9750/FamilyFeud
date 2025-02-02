@@ -49,7 +49,7 @@ const SideBar = () => {
                                 </Typography>
                             </Link>
 
-                            {/* <Link
+                            <Link
                                 to='/addQuestion'
                                 className={`w-full flex items-center px-4 py-3 hover:bg-blue-200 hover:rounded-lg
                                 ${location.pathname === '/addQuestion' ? 'bg-blue-100 rounded-lg' : ''}`
@@ -64,7 +64,7 @@ const SideBar = () => {
                                 >
                                     Add Question
                                 </Typography>
-                            </Link> */}
+                            </Link>
 
                             <Link
                                 to='/family'
