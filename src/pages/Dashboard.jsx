@@ -203,7 +203,7 @@ const Dashboard = () => {
                     {renderStrikes()}
 
                     <Box className='absolute top-[40%] left-[28%]'>
-                        <Typography variant='h1' sx={{ color: '#fbbf24', textTransform: 'capitalize' }}>{familyWon || ''} Won</Typography>
+                        <Typography variant='h1' sx={{ color: '#fbbf24', textTransform: 'capitalize' }}>{familyWon ? `${familyWon} Won` : ''}</Typography>
                     </Box>
 
                     <Box className="min-h-screen flex flex-col justify-center items-center gap-20">
