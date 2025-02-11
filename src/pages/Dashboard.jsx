@@ -202,7 +202,7 @@ const Dashboard = () => {
                 <Box className='w-full bg-blue-500'>
                     {renderStrikes()}
 
-                    <Box className='absolute top-[40%] left-[28%]'>
+                    <Box className='absolute top-[40%] left-[28%] z-10'>
                         <Typography variant='h1' sx={{ color: '#fbbf24', textTransform: 'capitalize' }}>{familyWon ? `${familyWon} Won` : ''}</Typography>
                     </Box>
 
