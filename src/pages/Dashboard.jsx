@@ -111,13 +111,13 @@ const Dashboard = () => {
 
             setFamilyWon(data?.familyWon?.Name)
 
-            window.open('/board', '_blank');
-            // navigate('/board','_blank')
+            // window.open('/board', '_blank');
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 setFamilyWon('')
                 dispatch(resetAnswer())
-            },5000)
+                navigate('/board')
+            }, 5000)
         });
 
         return () => {
