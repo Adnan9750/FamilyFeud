@@ -34,14 +34,15 @@ const LeaderBoard = () => {
                         <Box className='py-4'>
                             <Typography color='#fff' variant='h5' textAlign='center'>LeaderBoard</Typography>
                         </Box>
-                        <Paper sx={{ bgcolor: '#3b82f6', border: '3px solid yellow' }}>
+                        <Paper sx={{ bgcolor: '#172554 ', border: '2px solid yellow' }}>
                             <TableContainer>
                                 <Table style={{ borderCollapse: "collapse" }} aria-label="striped sortable table">
                                     <TableHead>
-                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '14px' }}>Name</TableCell>
-                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '14px' }} align='center'>Game Played</TableCell>
-                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '14px' }} align='center'>Game Won</TableCell>
-                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '14px' }} align='center'>Win Percentage</TableCell>
+                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '16px' }}>Name</TableCell>
+                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '16px' }} align='center'>Games Played</TableCell>
+                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '16px' }} align='center'>Games Won</TableCell>
+                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '16px' }} align='center'>Score</TableCell>
+                                        <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '16px' }} align='center'>Win Percentage</TableCell>
                                         {/* <TableCell sx={{ color: '#ffff', fontWeight: 600, fontSize: '14px' }} align='center'>Actions</TableCell> */}
                                     </TableHead>
 
@@ -52,17 +53,20 @@ const LeaderBoard = () => {
                                             <TableBody>
                                                 {
                                                     boardData?.map((board) => (
-                                                        <TableRow key={board._id}>
-                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '12px' }}>
+                                                        <TableRow key={board._id} sx={{border:'1px solid #fff'}}>
+                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '14px' }}>
                                                                 {board.name}
                                                             </TableCell>
-                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '12px' }} align='center'>
+                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '14px' }} align='center'>
                                                                 {board.gamesPlayed}
                                                             </TableCell>
-                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '12px' }} align='center'>
+                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '14px' }} align='center'>
                                                                 {board.gamesWon}
                                                             </TableCell>
-                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '12px' }} align='center'>
+                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '14px' }} align='center'>
+                                                                {board.score}
+                                                            </TableCell>
+                                                            <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '14px' }} align='center'>
                                                                 {`${board.winPercentage}%`}
                                                             </TableCell>
                                                             {/* <TableCell sx={{ color: '#ffff', fontWeight: 400, fontSize: '12px' }} align='center'>Actions</TableCell> */}

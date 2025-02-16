@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react'
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import setupAPI from '../services/Api';
 
-const AddQuestion = () => {
+const AddQuestionFile = () => {
 
   const fileRef = useRef(null)
   const [selectedFile, setSelectedFile] = useState(null);
@@ -60,7 +60,7 @@ const AddQuestion = () => {
 
   return (
     <>
-      <Box padding={4}>
+      {/* <Box paddingY={1}> */}
         <Container>
           <Box >
             <form className='flex flex-col gap-10' onSubmit={handleUploadQuestion}>
@@ -166,9 +166,9 @@ const AddQuestion = () => {
 
           </Box>
         </Container>
-      </Box>
+      {/* </Box> */}
     </>
   )
 }
 
-export default AddQuestion
+export default AddQuestionFile

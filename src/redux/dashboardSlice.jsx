@@ -85,7 +85,7 @@ const dashboardSlice = createSlice({
         resetAnswer: (state) => {
             state.family = [],
             state.answers = [],
-                state.question = {}
+                state.question = null
         }
     }
 })

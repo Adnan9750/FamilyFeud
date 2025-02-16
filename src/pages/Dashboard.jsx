@@ -65,13 +65,13 @@ const Dashboard = () => {
             // If it's the third strike, transfer score and switch teams
             // if (currentTeamIndex === 0 && data?.countStrike === 3) {
             //     dispatch(switchTeam({ transferScore: true }));
-
-            //     // Reset strikes after a delay
-            //     setTimeout(() => {
-            //         setCurrentStrike(0);
-            //     }, 4000);
-            // }
         });
+
+        socket.on('quitGame', (data) => {
+            if (data?.deleteLocalData) {
+                dispatch(resetAnswer())
+            }
+        })
 
         socket.on('switchFamily', (data) => {
             console.log('switch Family data:', data);
@@ -81,13 +81,6 @@ const Dashboard = () => {
             }, 4000);
             // Update the UI to show strikes
         })
-
-        // socket.on('strike', (data) => {
-        //     setCurrentStrike(data?.countStrike);
-        //     setTimeout(() => {
-        //         setCurrentStrike(0);
-        //     }, 4000);
-        // });
 
         socket.on('newQuestion', (data) => {
             console.log("Next question:", data);
@@ -117,13 +110,14 @@ const Dashboard = () => {
             console.log('endGame:', data);
 
             setFamilyWon(data?.familyWon?.Name)
-            setTimeout(() => {
-                navigate('/board')
+
+            window.open('/board', '_blank');
+            // navigate('/board','_blank')
+
+            setTimeout(()=>{
+                setFamilyWon('')
                 dispatch(resetAnswer())
-            }, 10000)
-            // navigate('/board')
-            // dispatch(resetAnswer())
-            // Update the UI to show strikes
+            },5000)
         });
 
         return () => {
@@ -202,9 +196,18 @@ const Dashboard = () => {
                 <Box className='w-full bg-blue-500'>
                     {renderStrikes()}
 
-                    <Box className='absolute top-[40%] left-[28%] z-10'>
-                        <Typography variant='h1' sx={{ color: '#fbbf24', textTransform: 'capitalize' }}>{familyWon ? `${familyWon} Won` : ''}</Typography>
-                    </Box>
+                    {
+                        familyWon && (
+                            <Box className='flex justify-center items-center'>
+                                <Box className='absolute top-[35%] bg-blue-950 py-10 px-5 rounded-md border-[2px] border-[#C0C0C0] flip-in z-10'>
+                                    <Typography variant='h1' sx={{ color: '#ffff', textTransform: 'capitalize' }}>
+                                        {familyWon ? `${familyWon} Won` : ''}
+                                        {/* family1 Won */}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        )
+                    }
 
                     <Box className="min-h-screen flex flex-col justify-center items-center gap-20">
                         <Container maxWidth="xl">
@@ -286,7 +289,9 @@ const Dashboard = () => {
                 </Box>
             ) : (
                 <Box className='min-h-screen bg-blue-500 flex justify-center items-center w-full'>
-                    <Typography variant='h3' sx={{color:'#fbbf24'}}>Game not start</Typography>
+                    <Box className='bg-blue-950 py-14 px-5 rounded-md border-[2px] border-[#C0C0C0]'>
+                        <Typography variant='h3' sx={{ color: '#ffff' }}>Game not started</Typography>
+                    </Box>
                 </Box>
             )}
         </>

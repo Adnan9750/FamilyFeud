@@ -23,7 +23,7 @@ const SideBar = () => {
                                 {/* <img src='/Logo.png' className={`w-7 h-7 ml-1`} /> */}
                                 <span className={`font-bold text-2xl whitespace-nowrap `}
                                 >
-                                    FamilyFued
+                                    Family Fued
                                 </span>
                             </div>
                         </div>

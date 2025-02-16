@@ -10,7 +10,8 @@ import AddFamily from './pages/AddFamily'
 import ManageFamilies from './pages/ManageFamilies'
 import Login from './pages/Login'
 import LeaderBoard from './pages/LeaderBoard'
-import AddQuestion from './pages/AddQuestion'
+import AddQuestion from './pages/AddQuestionFile'
+import GameQuestion from './pages/GameQuestion'
 
 const theme = createTheme({
   components: {
@@ -56,7 +57,7 @@ const App = () => {
       element: <PrivateLayout />,
       children: [
         { path: '/playGame', element: <AddFamily /> },
-        { path: '/addQuestion', element: <AddQuestion /> },
+        { path: '/addQuestion', element: <GameQuestion /> },
         { path: '/family', element: <ManageFamilies /> }
         // { path: '/admin', element: <AdminPanel /> },
       ]
