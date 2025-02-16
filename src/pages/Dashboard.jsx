@@ -22,7 +22,7 @@ const Dashboard = () => {
         const socket = io('https://family-feud-backend.onrender.com/');
 
         socket.on('startGame', (data) => {
-            console.log("Start Game:", data);
+
             dispatch(setFamily(data.families));
             dispatch(setQuestion(data.question));
             setRevealedAnswers(new Set());
@@ -34,7 +34,7 @@ const Dashboard = () => {
         });
 
         socket.on('revealAnswer', (data) => {
-            console.log("reveal answer:", data);
+
             if (data?.answer) {
                 setRevealedAnswers(prev => {
                     const newSet = new Set(prev);
@@ -55,7 +55,7 @@ const Dashboard = () => {
         });
 
         socket.on('strike', (data) => {
-            console.log("Strike come:", data);
+
             setCurrentStrike(data?.countStrike);
             dispatch(setFamilyTurn(data?.familyTurn))
             dispatch(addStrike(data?.countStrike))
@@ -74,7 +74,7 @@ const Dashboard = () => {
         })
 
         socket.on('switchFamily', (data) => {
-            console.log('switch Family data:', data);
+
             dispatch(setFamilyTurn(data?.familyTurn))
             setTimeout(() => {
                 setCurrentStrike(0);
@@ -83,7 +83,7 @@ const Dashboard = () => {
         })
 
         socket.on('newQuestion', (data) => {
-            console.log("Next question:", data);
+        
             dispatch(setFamily(data?.families));
             dispatch(setQuestion(data?.question));
             dispatch(setCurrentPoints(0))
@@ -97,7 +97,6 @@ const Dashboard = () => {
         });
 
         socket.on('revealAll', (data) => {
-            console.log("Reveal All:", data);
             const fullyRevealedAnswers = answers?.map(ans => ({
                 ...ans,
                 revealed: true
@@ -107,7 +106,7 @@ const Dashboard = () => {
         })
 
         socket.on('endGame', (data) => {
-            console.log('endGame:', data);
+            // console.log('endGame:', data);
 
             setFamilyWon(data?.familyWon?.Name)
 
