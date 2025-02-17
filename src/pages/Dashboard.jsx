@@ -17,6 +17,7 @@ const Dashboard = () => {
     const [familyWon, setFamilyWon] = useState('')
 
     const audioRef = useRef(null);
+    const revealRef = useRef(null)
     // console.log("current  data:", families);
 
     useEffect(() => {
@@ -52,6 +53,10 @@ const Dashboard = () => {
                 dispatch(setCurrentPoints(data.answer.points))
                 dispatch(setFamilyTurn(data?.familyTurn))
                 dispatch(addScore(data?.answer?.points));
+
+                // if (data?.countStrike) {
+                    revealRef.current.play();
+                // }
             }
         });
 
@@ -198,6 +203,8 @@ const Dashboard = () => {
     return (
         <>
             <audio ref={audioRef} src="/Strike.mp3" preload="auto" />
+
+            <audio ref={revealRef} src="/reveal.mpeg" preload="auto" />
 
             {families.length > 0 ? (
                 <Box className='w-full bg-blue-500'>
