@@ -1,5 +1,5 @@
 import { Box, Container, Grid2, Typography } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 import { setFamily, setAnswer, setQuestion, resetAnswer, addScore, setCurrentPoints, switchTeam, setFamilyTurn, addStrike } from '../redux/dashboardSlice';
@@ -16,7 +16,8 @@ const Dashboard = () => {
     const [revealedAnswers, setRevealedAnswers] = useState(new Set());
     const [familyWon, setFamilyWon] = useState('')
 
-    console.log("current  data:", families);
+    const audioRef = useRef(null);
+    // console.log("current  data:", families);
 
     useEffect(() => {
         const socket = io('https://family-feud-backend.onrender.com/');
@@ -59,6 +60,11 @@ const Dashboard = () => {
             setCurrentStrike(data?.countStrike);
             dispatch(setFamilyTurn(data?.familyTurn))
             dispatch(addStrike(data?.countStrike))
+
+            if (data?.countStrike) {
+                audioRef.current.play();
+            }
+
             setTimeout(() => {
                 setCurrentStrike(0);
             }, 4000);
@@ -83,7 +89,7 @@ const Dashboard = () => {
         })
 
         socket.on('newQuestion', (data) => {
-        
+
             dispatch(setFamily(data?.families));
             dispatch(setQuestion(data?.question));
             dispatch(setCurrentPoints(0))
@@ -191,6 +197,8 @@ const Dashboard = () => {
 
     return (
         <>
+            <audio ref={audioRef} src="/Strike.mp3" preload="auto" />
+
             {families.length > 0 ? (
                 <Box className='w-full bg-blue-500'>
                     {renderStrikes()}
