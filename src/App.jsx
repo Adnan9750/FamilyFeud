@@ -4,7 +4,7 @@ import { CssBaseline, ThemeProvider, Typography, createTheme } from '@mui/materi
 import Dashboard from './pages/Dashboard'
 import Example from './pages/Example'
 import AdminPanel from './pages/AdminPanel'
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
 import PrivateLayout from './components/Layout/PrivateLayout'
 import AddFamily from './pages/AddFamily'
 import ManageFamilies from './pages/ManageFamilies'
@@ -61,7 +61,11 @@ const App = () => {
         { path: '/family', element: <ManageFamilies /> }
         // { path: '/admin', element: <AdminPanel /> },
       ]
-    }
+    },
+    {
+      path: '*',
+      element: <Navigate to="/" replace />,
+    },
   ],
     {
       future: {
