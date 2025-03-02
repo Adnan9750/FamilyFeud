@@ -6,31 +6,29 @@ const adminSlice = createSlice({
         family: [],
         question: {},
         answer: [],
-        currentTeamIndex: 1, // Default to Hamza (second team) as the first turn
+        currentTeamIndex: 0, // Default to the first team
         currentFamilyId: null,
         strikeCount: 0,
-        gameStage: 'first_team', // 'first_team' (3 strikes), 'second_team_chance' (1 strike)
+        gameStage: 'first_team', // 'first_team', 'second_team_chance'
         firstTeamStrikes: 0,
         secondTeamStrikes: 0,
-        teamWithStrikes: null,
+        teamWithStrikes: null, // Track which team accumulated strikes
     },
     reducers: {
         setFamily: (state, action) => {
             state.family = action.payload.map((family, index) => ({
                 ...family,
                 points: 0,
-                currentPoints: 0,
                 strikes: 0,
-                teamOrder: index === 1 ? 'first' : 'second' // Hamza (index 1) starts as 'first'
+                teamOrder: index === 0 ? 'first' : 'second'
             }));
-            state.currentTeamIndex = 1; // Hamza starts
-            state.currentFamilyId = state.family[1]._id;
+            state.currentTeamIndex = 0; // Default to the first team
+            state.currentFamilyId = state.family[0]._id; // Set default family ID
             state.gameStage = 'first_team';
             state.firstTeamStrikes = 0;
             state.secondTeamStrikes = 0;
             state.strikeCount = 0;
-            state.teamWithStrikes = null;
-            console.log("setFamily: Hamza starts as first team");
+            state.teamWithStrikes = null; // Reset strikes tracking
         },
         setCurrentFamilyId: (state, action) => {
             state.currentFamilyId = action.payload;
@@ -42,72 +40,87 @@ const adminSlice = createSlice({
                 revealed: false
             }));
             state.gameStage = 'first_team';
-            state.currentTeamIndex = 1; // Hamza starts by default
-            state.currentFamilyId = state.family[1]._id;
+            state.currentTeamIndex = 0; // Default to the first team
+            state.currentFamilyId = state.family[0]._id; // Set default family ID
             state.firstTeamStrikes = 0;
             state.secondTeamStrikes = 0;
             state.strikeCount = 0;
-            state.teamWithStrikes = null;
-            // Reset teamOrder to ensure Hamza is 'first' again
-            state.family = state.family.map((family, index) => ({
-                ...family,
-                currentPoints: 0,
-                strikes: 0,
-                teamOrder: index === 1 ? 'first' : 'second' // Reset Hamza as 'first'
-            }));
-            console.log("setQuestion: Reset to Hamza as first team, strikeCount:", state.strikeCount);
+            state.teamWithStrikes = null; // Reset strikes tracking
         },
         setAnswer: (state, action) => {
             state.answer = action.payload;
         },
         addScore: (state, action) => {
             const { points } = action.payload;
+
+            // Check if we're in the "second team chance" stage after first team got 3 strikes
             if (state.gameStage === 'second_team_chance' && state.teamWithStrikes !== null) {
-                const firstTeamIndex = state.teamWithStrikes;
+                // Find the first team that got 3 strikes (by teamOrder)
+                const firstTeamIndex = state.family.findIndex(fam => fam.teamOrder === 'first');
+                // The current team is the second team
                 const secondTeamIndex = state.currentTeamIndex;
-                const firstTeamCurrentPoints = state.family[firstTeamIndex].currentPoints;
-                state.family[secondTeamIndex].points += firstTeamCurrentPoints + points;
-                state.family[secondTeamIndex].currentPoints += points;
-                state.family[firstTeamIndex].points -= firstTeamCurrentPoints;
-                state.family[firstTeamIndex].currentPoints = 0;
+
+                if (firstTeamIndex !== -1) {
+                    // Add first team's points plus new answer points to second team
+                    state.family[secondTeamIndex].points += state.family[firstTeamIndex].points + points;
+                    state.family[firstTeamIndex].points = 0; // Reset first team's points
+                } else {
+                    // Fallback if no first team is found
+                    state.family[secondTeamIndex].points += points;
+                }
             } else {
+                // Normal scoring: Add points to the current team
                 state.family[state.currentTeamIndex].points += points;
-                state.family[state.currentTeamIndex].currentPoints += points;
             }
         },
         addStrike: (state) => {
+            // We determine first/second team based on the teamOrder property
             const currentFamily = state.family[state.currentTeamIndex];
             const isFirstTeam = currentFamily.teamOrder === 'first';
-
-            console.log("addStrike: Current Team:", currentFamily.name, "isFirstTeam:", isFirstTeam, "gameStage:", state.gameStage);
 
             if (isFirstTeam && state.gameStage === 'first_team') {
                 state.firstTeamStrikes += 1;
                 state.strikeCount += 1;
-                console.log("First Team Strike Added - firstTeamStrikes:", state.firstTeamStrikes, "strikeCount:", state.strikeCount);
 
+                // If the first team reaches 3 strikes
                 if (state.firstTeamStrikes >= 3) {
+                    // Store current team index as the team with strikes
                     state.teamWithStrikes = state.currentTeamIndex;
                     state.gameStage = 'second_team_chance';
+
+                    // Find the second team index
                     const secondTeamIndex = state.family.findIndex(fam => fam.teamOrder === 'second');
-                    state.currentTeamIndex = secondTeamIndex;
-                    state.currentFamilyId = state.family[secondTeamIndex]._id;
-                    state.strikeCount = 0;
-                    console.log("Switched to second team after 3 strikes - secondTeamIndex:", secondTeamIndex);
+                    if (secondTeamIndex !== -1) {
+                        state.currentTeamIndex = secondTeamIndex;
+                        state.currentFamilyId = state.family[secondTeamIndex]._id;
+                    }
+                    state.strikeCount = 0; // Reset strike count for the second team
                 }
             } else if (!isFirstTeam && state.gameStage === 'second_team_chance') {
                 state.secondTeamStrikes += 1;
                 state.strikeCount += 1;
-                console.log("Second Team Strike Added - secondTeamStrikes:", state.secondTeamStrikes, "strikeCount:", state.strikeCount);
 
+                // If the second team reaches 1 strike
                 if (state.secondTeamStrikes >= 1) {
-                    state.teamWithStrikes = state.currentTeamIndex;
-                    // state.answer = state.answer.map(ans => ({ ...ans, revealed: true }));
-                    // state.gameStage = 'first_team';
-                    // state.currentTeamIndex = state.family.findIndex(fam => fam.teamOrder === 'first');
-                    // state.currentFamilyId = state.family[state.currentTeamIndex]._id;
-                    state.strikeCount = 0;
-                    console.log("Switched back to first team after second team's strike");
+                    // Reveal all remaining answers
+                    state.answer = state.answer.map(ans => ({
+                        ...ans,
+                        revealed: true
+                    }));
+
+                    // Important: DON'T transfer points if second team gets a strike
+                    // First team keeps their points
+
+                    state.gameStage = 'first_team'; // Switch back to the first team for the next question
+
+                    // Find the first team index
+                    const firstTeamIndex = state.family.findIndex(fam => fam.teamOrder === 'first');
+                    if (firstTeamIndex !== -1) {
+                        state.currentTeamIndex = firstTeamIndex;
+                        state.currentFamilyId = state.family[firstTeamIndex]._id;
+                    }
+                    state.strikeCount = 0; // Reset strike count for the first team
+                    state.teamWithStrikes = null; // Reset the team with strikes
                 }
             }
         },
@@ -116,32 +129,41 @@ const adminSlice = createSlice({
             const hasStrikes = state.gameStage === 'first_team' ? state.firstTeamStrikes > 0 : state.secondTeamStrikes > 0;
 
             if (!hasRevealedAnswers && !hasStrikes) {
+                // Switch teams only if no answers have been revealed and no strikes have been recorded
                 state.currentTeamIndex = state.currentTeamIndex === 0 ? 1 : 0;
                 state.currentFamilyId = state.family[state.currentTeamIndex]._id;
+
+                // Update the game stage to 'first_team' since no answers have been revealed yet
+                // This ensures that the current team gets 3 strike chances
                 state.gameStage = 'first_team';
+
+                // Reset all strikes since we're switching at the beginning
                 state.firstTeamStrikes = 0;
                 state.secondTeamStrikes = 0;
                 state.strikeCount = 0;
+
+                // Important: Update the team order in the family array
+                // The current team becomes the "first" team in terms of game logic
                 state.family = state.family.map((fam, index) => ({
                     ...fam,
                     teamOrder: index === state.currentTeamIndex ? 'first' : 'second'
                 }));
+
+                // Reset the teamWithStrikes state when manually switching teams
                 state.teamWithStrikes = null;
-                console.log("switchTeam: Switched to team index:", state.currentTeamIndex);
             }
         },
         resetAll: (state) => {
             state.family = [];
             state.question = {};
             state.answer = [];
-            state.currentTeamIndex = 1; // Reset to Hamza
+            state.currentTeamIndex = 0;
             state.currentFamilyId = null;
             state.strikeCount = 0;
             state.firstTeamStrikes = 0;
             state.secondTeamStrikes = 0;
             state.gameStage = 'first_team';
-            state.teamWithStrikes = null;
-            console.log("resetAll: Reset to initial state with Hamza as first team");
+            state.teamWithStrikes = null; // Reset strikes tracking
         }
     }
 });

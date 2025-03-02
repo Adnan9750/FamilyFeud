@@ -20,6 +20,8 @@ const Dashboard = () => {
     const revealRef = useRef(null)
     // console.log("current  data:", families);
 
+    // console.log("Families Data:", families);
+
     useEffect(() => {
         const socket = io('https://family-feud-backend.onrender.com/');
 
@@ -55,7 +57,7 @@ const Dashboard = () => {
                 dispatch(addScore(data?.answer?.points));
 
                 // if (data?.countStrike) {
-                    revealRef.current.play();
+                revealRef.current.play();
                 // }
             }
         });
@@ -76,6 +78,7 @@ const Dashboard = () => {
             // If it's the third strike, transfer score and switch teams
             // if (currentTeamIndex === 0 && data?.countStrike === 3) {
             //     dispatch(switchTeam({ transferScore: true }));
+            // }
         });
 
         socket.on('quitGame', (data) => {
